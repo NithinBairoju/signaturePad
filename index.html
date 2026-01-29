@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <!-- Primary Meta Tags -->
+    <title>Free Online Signature Pad | Create Digital Signatures</title>
+    <meta name="title" content="Free Online Signature Pad | Create Digital Signatures">
+    <meta name="description" content="Create professional digital signatures online for free. Draw with mouse, touch, or stylus. Secure, client-side only, no upload required. Download transparent PNGs instantly.">
+    <meta name="keywords" content="signature pad, online signature, digital signature, draw signature, free electronic signature, esign tool, transparent png signature, client-side signature">
+    <meta name="robots" content="index, follow">
+    <meta name="author" content="SignaturePro">
+    <meta name="theme-color" content="#2563eb">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://yoursite.com/">
+    <meta property="og:title" content="Free Online Signature Pad | Create Digital Signatures">
+    <meta property="og:description" content="Create professional digital signatures online for free. Draw with mouse, touch, or stylus. Secure, client-side only.">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://yoursite.com/">
+    <meta property="twitter:title" content="Free Online Signature Pad | Create Digital Signatures">
+    <meta property="twitter:description" content="Create professional digital signatures online for free. Draw with mouse, touch, or stylus. Secure, client-side only.">
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebApplication",
+      "name": "Pro Signature Pad",
+      "alternateName": "Online Signature Creator",
+      "url": "https://yoursite.com/",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Any",
+      "description": "A secure, client-side web application for creating and downloading handwritten digital signatures in PNG format.",
+      "offers": {
+        "@type": "Offer",
+        "price": "0",
+        "priceCurrency": "USD"
+      },
+      "featureList": "Pressure sensitivity, High-DPI support, Transparent PNG export, Offline capability"
+    }
+    </script>
+
+    <style>
+        :root {
+            --bg-color: #f3f4f6;
+            --surface-color: #ffffff;
+            --primary: #2563eb;
+            --primary-hover: #1d4ed8;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border: #e5e7eb;
+            --danger: #ef4444;
+            --shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 16px;
+            overscroll-behavior: none;
+        }
+
+        .app-container {
+            background: var(--surface-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow);
+            width: 100%;
+            max-width: 720px;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            border: 1px solid var(--border);
+        }
+
+        header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #fff;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            font-weight: 600;
+            letter-spacing: -0.01em;
+        }
+
+        .status-dot {
+            height: 8px;
+            width: 8px;
+            background-color: #10b981;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .status {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+        }
+
+        .canvas-area {
+            position: relative;
+            background-color: #ffffff;
+            /* Subtle paper texture using CSS gradients */
+            background-image: 
+                linear-gradient(rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0,0,0,0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            cursor: crosshair;
+            touch-action: none; /* CRITICAL for mobile: prevents scrolling while signing */
+            width: 100%;
+            height: 360px; /* Fixed height for consistency */
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+            touch-action: none;
+        }
+
+        .sign-here-indicator {
+            position: absolute;
+            bottom: 40px;
+            left: 24px;
+            color: #ef4444;
+            font-size: 1.5rem;
+            opacity: 0.8;
+            pointer-events: none;
+            font-family: 'Courier New', Courier, monospace;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .sign-here-indicator::before {
+            content: "x";
+            font-size: 2rem;
+            margin-bottom: 4px;
+        }
+
+        /* Color Selection Toolbar */
+        .color-palette {
+            padding: 12px 16px 0 16px;
+            background: #fafafa;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: center;
+            gap: 16px;
+        }
+
+        .color-swatch {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            cursor: pointer;
+            border: 2px solid white;
+            box-shadow: 0 0 0 1px #d1d5db; /* Default ring */
+            transition: transform 0.15s cubic-bezier(0.4, 0.0, 0.2, 1), box-shadow 0.15s;
+            position: relative;
+            
+            /* Mobile Optimization: Removes 300ms tap delay */
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .color-swatch:hover {
+            transform: scale(1.1);
+        }
+
+        .color-swatch.active {
+            box-shadow: 0 0 0 2px var(--primary), 0 0 0 4px rgba(37, 99, 235, 0.1);
+            transform: scale(1.15);
+        }
+        
+        /* Accessibility focus styles */
+        .color-swatch:focus-visible {
+            outline: none;
+            box-shadow: 0 0 0 2px var(--primary), 0 0 0 4px rgba(37, 99, 235, 0.2);
+        }
+
+        .controls {
+            padding: 16px;
+            background: #fafafa;
+            /* border-top removed as color-palette handles the separation now */
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            display: inline-flex;
+            justify-content: center;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            gap: 8px;
+            border: 1px solid var(--border);
+            background: white;
+            color: var(--text-primary);
+            touch-action: manipulation; /* Instant click on mobile */
+        }
+
+        button:hover {
+            background-color: #f3f4f6;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        /* Specific Button Styles */
+        .btn-clear { color: var(--danger); border-color: #fee2e2; }
+        .btn-clear:hover { background-color: #fef2f2; }
+
+        .btn-primary {
+            background-color: var(--primary);
+            color: white;
+            border: 1px solid var(--primary);
+            grid-column: span 1; /* Desktop default */
+        }
+        .btn-primary:hover { background-color: var(--primary-hover); }
+
+        /* Icons */
+        svg { width: 18px; height: 18px; }
+
+        @media (max-width: 600px) {
+            .app-container { border-radius: 0; height: 100vh; max-width: none; border: none;}
+            body { padding: 0; }
+            .canvas-area { flex-grow: 1; height: auto; }
+            .controls { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+            h1 { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <header>
+            <h1>Signature<span style="font-weight: 400; color: #6b7280;">Pro</span></h1>
+            <div class="status"><span class="status-dot"></span>Ready</div>
+        </header>
+
+        <div class="canvas-area" id="canvasContainer">
+            <canvas id="signatureCanvas"></canvas>
+            <div class="sign-here-indicator" id="signPlaceholder">Sign Here</div>
+        </div>
+
+        <div class="color-palette" role="group" aria-label="Ink Color Selection">
+            <!-- Realistic Ink Colors: Carbon Black, Ballpoint Blue, Document Green -->
+            <!-- Handlers are now bound via JS for better performance -->
+            <button class="color-swatch active" style="background-color: #1a1a1a;" data-color="#1a1a1a" aria-label="Black Ink"></button>
+            <button class="color-swatch" style="background-color: #0033cc;" data-color="#0033cc" aria-label="Blue Ink"></button>
+            <button class="color-swatch" style="background-color: #00552e;" data-color="#00552e" aria-label="Green Ink"></button>
+        </div>
+
+        <div class="controls">
+            <button class="btn-secondary" id="btnUndo">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/></svg>
+                Undo
+            </button>
+            <button class="btn-clear" id="btnClear">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Clear
+            </button>
+            <button class="btn-primary" id="btnDownload">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Save PNG
+            </button>
+        </div>
+    </div>
+
+<script>
+/**
+ * Point Class
+ * Represents a coordinate with pressure data.
+ */
+class Point {
+    constructor(x, y, pressure, time) {
+        this.x = x;
+        this.y = y;
+        this.pressure = pressure || 0.5;
+        this.time = time || Date.now();
+    }
+
+    distanceTo(start) {
+        return Math.sqrt(Math.pow(this.x - start.x, 2) + Math.pow(this.y - start.y, 2));
+    }
+}
+
+/**
+ * SignaturePad Engine
+ * Optimized for Mobile + High-Res Vector Export + Multi-color support
+ */
+class SignaturePad {
+    constructor(canvas, container) {
+        this.canvas = canvas;
+        this.container = container;
+        this.ctx = canvas.getContext('2d', { willReadFrequently: true });
+        
+        // Configuration
+        this.options = {
+            // Updated for realistic "pen" feel (finer, less marker-like)
+            minWidth: 0.5,        // Fine tip
+            maxWidth: 2.5,        // Standard ballpoint max width
+            minDistance: 3, 
+            velocityFilterWeight: 0.7, // Smoother transitions for ink flow
+            penColor: "#1a1a1a"   // Default "Carbon Black"
+        };
+
+        // State
+        this.points = []; // Points for the current stroke
+        this.strokes = []; // Array of stroke objects { points: Point[], color: string }
+        
+        this.isDrawing = false;
+        this.lastVelocity = 0;
+        this.lastWidth = (this.options.minWidth + this.options.maxWidth) / 2;
+        
+        this.history = []; // Raster History (ImageData) for fast Undo
+        this.cachedRect = null; 
+        this.placeholder = document.getElementById('signPlaceholder');
+        this.resizeTimeout = null;
+
+        // UI Cache
+        this.swatches = Array.from(document.querySelectorAll('.color-swatch'));
+
+        this.handleResize();
+        this.bindEvents();
+    }
+
+    bindEvents() {
+        // Canvas Interaction
+        this.canvas.addEventListener('pointerdown', this.onPointerDown.bind(this), { passive: false });
+        this.canvas.addEventListener('pointermove', this.onPointerMove.bind(this), { passive: false });
+        this.canvas.addEventListener('pointerup', this.onPointerUp.bind(this));
+        this.canvas.addEventListener('pointerleave', this.onPointerUp.bind(this));
+        
+        // Window Resize
+        window.addEventListener('resize', () => {
+            clearTimeout(this.resizeTimeout);
+            this.resizeTimeout = setTimeout(this.handleResize.bind(this), 100);
+        });
+
+        // UI Binding (Event Delegation optimization not strictly needed for 3 items, direct bind is fine)
+        this.swatches.forEach(btn => {
+            btn.addEventListener('click', (e) => this.handleColorClick(e, btn));
+        });
+
+        // Control Buttons
+        document.getElementById('btnUndo').addEventListener('click', () => this.undo());
+        document.getElementById('btnClear').addEventListener('click', () => this.clear());
+        document.getElementById('btnDownload').addEventListener('click', () => this.download());
+    }
+
+    handleColorClick(e, btn) {
+        const color = btn.getAttribute('data-color');
+        if (!color) return;
+
+        // 1. Update Internal State
+        this.options.penColor = color;
+        
+        // 2. Update Context Immediately (Atomic update)
+        this.ctx.fillStyle = color;
+
+        // 3. UI Update (Using cached array to avoid querySelectorAll)
+        this.swatches.forEach(s => {
+            if (s === btn) s.classList.add('active');
+            else s.classList.remove('active');
+        });
+    }
+
+    handleResize() {
+        let savedData = null;
+        if (this.canvas.width > 0 && this.canvas.height > 0) {
+            savedData = this.canvas.toDataURL();
+        }
+
+        const rect = this.container.getBoundingClientRect();
+        const dpr = window.devicePixelRatio || 1;
+
+        this.canvas.width = rect.width * dpr;
+        this.canvas.height = rect.height * dpr;
+        
+        this.ctx.scale(dpr, dpr);
+        // Ensure context properties are restored after resize
+        this.ctx.fillStyle = this.options.penColor;
+        this.ctx.lineCap = "round";
+        this.ctx.lineJoin = "round";
+
+        if (savedData && this.history.length > 0) {
+            const img = new Image();
+            img.onload = () => {
+                this.ctx.drawImage(img, 0, 0, rect.width, rect.height);
+            };
+            img.src = savedData;
+        }
+
+        this.checkPlaceholder();
+    }
+
+    // --- Input Handling ---
+
+    onPointerDown(e) {
+        e.preventDefault();
+        this.cachedRect = this.canvas.getBoundingClientRect();
+        this.isDrawing = true;
+        this.canvas.setPointerCapture(e.pointerId);
+        
+        // Redundant safety check to ensure color is sync'd before stroke starts
+        this.ctx.fillStyle = this.options.penColor;
+        
+        this.saveHistory(); // Save raster state
+
+        const point = this._createPoint(e);
+        this.points = [point];
+        this.lastVelocity = 0;
+        this.lastWidth = (this.options.minWidth + this.options.maxWidth) / 2;
+
+        this._drawDot(this.ctx, point, this.options.minWidth);
+        this.placeholder.style.display = 'none';
+    }
+
+    onPointerMove(e) {
+        if (!this.isDrawing) return;
+        e.preventDefault();
+
+        const events = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+
+        for (const evt of events) {
+            const point = this._createPoint(evt);
+            const lastPoint = this.points[this.points.length - 1];
+
+            if (point.distanceTo(lastPoint) < this.options.minDistance) continue;
+
+            this.points.push(point);
+
+            if (this.points.length > 2) {
+                const p0 = this.points[this.points.length - 3];
+                const p1 = this.points[this.points.length - 2];
+                const p2 = this.points[this.points.length - 1];
+
+                const cp1 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+                const cp2 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+
+                // Draw live on canvas
+                const newState = this._drawCurve(this.ctx, cp1, p1, cp2, this.lastVelocity, this.lastWidth);
+                this.lastVelocity = newState.velocity;
+                this.lastWidth = newState.width;
+            }
+        }
+    }
+
+    onPointerUp(e) {
+        this.isDrawing = false;
+        
+        // Finalize stroke rendering
+        if (this.points.length > 2) {
+             const p1 = this.points[this.points.length - 2];
+             const p2 = this.points[this.points.length - 1];
+             const newState = this._drawCurve(this.ctx, {x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2}, p1, p2, this.lastVelocity, this.lastWidth);
+             this.lastVelocity = newState.velocity;
+             this.lastWidth = newState.width;
+        }
+
+        // Save Vector Data + Color
+        if (this.points.length > 0) {
+            this.strokes.push({
+                points: [...this.points],
+                color: this.options.penColor
+            });
+        }
+        
+        this.points = [];
+        this.cachedRect = null;
+    }
+
+    _createPoint(e) {
+        const rect = this.cachedRect || this.canvas.getBoundingClientRect();
+        let pressure = e.pressure;
+        if (e.pointerType !== 'pen' || pressure === 0) pressure = 0.5;
+        return new Point(e.clientX - rect.left, e.clientY - rect.top, pressure);
+    }
+
+    // --- Core Drawing Logic ---
+
+    _drawCurve(ctx, start, control, end, lastVelocity, lastWidth) {
+        const dist = Math.hypot(control.x - start.x, control.y - start.y) +
+                     Math.hypot(end.x - control.x, end.y - control.y);
+        
+        const velocity = dist; 
+        const weight = this.options.velocityFilterWeight;
+        const newVelocity = (weight * velocity) + ((1 - weight) * lastVelocity);
+        
+        const pressureWidth = control.pressure * ((this.options.maxWidth - this.options.minWidth) + this.options.minWidth);
+        const velocityWidth = this._getStrokeWidth(newVelocity);
+
+        const targetWidth = (pressureWidth * 0.5) + (velocityWidth * 0.5);
+
+        const steps = Math.ceil(dist);
+        
+        for (let i = 0; i < steps; i++) {
+            const t = i / steps;
+            const tt = t * t;
+            const ttt = (1 - t) * (1 - t);
+            
+            const x = ttt * start.x + 2 * (1 - t) * t * control.x + tt * end.x;
+            const y = ttt * start.y + 2 * (1 - t) * t * control.y + tt * end.y;
+
+            const currentWidth = lastWidth + ((targetWidth - lastWidth) * t);
+
+            ctx.beginPath();
+            ctx.arc(x, y, currentWidth / 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        return { velocity: newVelocity, width: targetWidth };
+    }
+
+    _drawDot(ctx, point, width) {
+        ctx.beginPath();
+        ctx.arc(point.x, point.y, width / 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+
+    _getStrokeWidth(velocity) {
+        const maxVelocity = 50; 
+        const normalized = Math.min(velocity, maxVelocity) / maxVelocity;
+        const factor = 1 - normalized;
+        const easedFactor = 1 - Math.pow(1 - factor, 3);
+        return this.options.minWidth + (easedFactor * (this.options.maxWidth - this.options.minWidth));
+    }
+
+    // --- Features ---
+
+    saveHistory() {
+        if (this.history.length > 15) this.history.shift();
+        this.history.push(this.ctx.getImageData(0, 0, this.canvas.width, this.canvas.height));
+    }
+
+    undo() {
+        if (this.history.length === 0) {
+            this.clear();
+            return;
+        }
+        // Restore Raster (Visual)
+        const state = this.history.pop();
+        this.ctx.putImageData(state, 0, 0);
+        
+        // Restore Vector (Data)
+        this.strokes.pop();
+        
+        this.checkPlaceholder();
+    }
+
+    clear() {
+        this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        this.history = [];
+        this.strokes = [];
+        this.checkPlaceholder();
+    }
+
+    checkPlaceholder() {
+        const hasHistory = this.history.length > 0;
+        this.placeholder.style.display = hasHistory ? 'none' : 'flex';
+    }
+
+    // --- High Resolution Export Engine ---
+
+    download() {
+        if (this.strokes.length === 0 && !this.isDrawing) {
+            this._flashError();
+            return;
+        }
+
+        // Generate a fresh, high-res canvas from the vector data
+        const highResCanvas = this._generateHighResCanvas();
+        if (!highResCanvas) return;
+
+        // Trigger Download
+        const link = document.createElement('a');
+        link.download = `signature-${Date.now()}.png`;
+        link.href = highResCanvas.toDataURL('image/png');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    _generateHighResCanvas() {
+        if (this.strokes.length === 0) return null;
+
+        // 1. Calculate Bounding Box
+        let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+
+        this.strokes.forEach(strokeObj => {
+            strokeObj.points.forEach(p => {
+                if (p.x < minX) minX = p.x;
+                if (p.x > maxX) maxX = p.x;
+                if (p.y < minY) minY = p.y;
+                if (p.y > maxY) maxY = p.y;
+            });
+        });
+
+        const padding = 20;
+        const width = maxX - minX + (padding * 2);
+        const height = maxY - minY + (padding * 2);
+        
+        // 2. Setup High-Res Export Canvas (3x Scale)
+        const scale = 3; 
+        
+        const canvas = document.createElement('canvas');
+        canvas.width = width * scale;
+        canvas.height = height * scale;
+        
+        const ctx = canvas.getContext('2d');
+        ctx.scale(scale, scale);
+        // Translate context so the drawing is centered with padding
+        ctx.translate(-minX + padding, -minY + padding);
+
+        // 3. Re-render all strokes
+        this.strokes.forEach(strokeObj => {
+            const stroke = strokeObj.points;
+            if (stroke.length < 1) return;
+
+            // Set the specific color for this stroke
+            ctx.fillStyle = strokeObj.color;
+            
+            let lastVelocity = 0;
+            let lastWidth = (this.options.minWidth + this.options.maxWidth) / 2;
+            
+            this._drawDot(ctx, stroke[0], this.options.minWidth);
+
+            if (stroke.length > 2) {
+                for (let i = 2; i < stroke.length; i++) {
+                    const p0 = stroke[i-2];
+                    const p1 = stroke[i-1];
+                    const p2 = stroke[i];
+                    
+                    const cp1 = { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+                    const cp2 = { x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2 };
+                    
+                    const state = this._drawCurve(ctx, cp1, p1, cp2, lastVelocity, lastWidth);
+                    lastVelocity = state.velocity;
+                    lastWidth = state.width;
+                }
+                
+                const p1 = stroke[stroke.length-2];
+                const p2 = stroke[stroke.length-1];
+                this._drawCurve(ctx, {x:(p1.x+p2.x)/2, y:(p1.y+p2.y)/2}, p1, p2, lastVelocity, lastWidth);
+            }
+        });
+
+        return canvas;
+    }
+
+    _flashError() {
+        const btn = document.getElementById('btnDownload');
+        const originalText = btn.innerHTML;
+        btn.innerHTML = "Sign first!";
+        btn.style.backgroundColor = "#ef4444";
+        btn.style.borderColor = "#ef4444";
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.style.backgroundColor = "";
+            btn.style.borderColor = "";
+        }, 1500);
+    }
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+    const canvas = document.getElementById('signatureCanvas');
+    const container = document.getElementById('canvasContainer');
+    window.signaturePad = new SignaturePad(canvas, container);
+});
+
+</script>
+</body>
+</html>
